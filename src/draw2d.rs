@@ -1,10 +1,26 @@
-use super::buffer::WindowBuffer;
-use super::types2d::{Triangle, Vec2d};
+use super::buffer::Framebuffer;
+use super::types2d::{Triangle2d, Vec2d};
 
 #[allow(dead_code)]
-impl WindowBuffer {
-    // Bresenham's line algorithm
-    // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+impl Framebuffer {
+    pub fn fill_rect<T>(&mut self, point: Vec2d<T>, size: Vec2d<T>, color: u32)
+    where
+        Vec2d<T>: Into<Vec2d<usize>>,
+    {
+        let point: Vec2d<usize> = point.into();
+        let size: Vec2d<usize> = size.into();
+        let width = self.width;
+        let slice = self.slice_mut();
+        for y in point.y..point.y + size.y {
+            let pixel_start = width * y + point.x;
+            for pixel in slice[pixel_start..pixel_start + size.x].iter_mut() {
+                *pixel = color;
+            }
+        }
+    }
+
+    /// Bresenham's line algorithm
+    /// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
     pub fn draw_line<T>(&mut self, p1: Vec2d<T>, p2: Vec2d<T>, color: u32)
     where
         Vec2d<T>: Into<Vec2d<usize>>,
@@ -66,37 +82,74 @@ impl WindowBuffer {
         }
     }
 
-    pub fn draw_triangle<'a, T>(&mut self, triangle: &'a Triangle<T>, color: u32)
+    pub fn draw_triangle<'a, T>(&mut self, triangle: &'a Triangle2d<T>, color: u32)
     where
-        &'a Triangle<T>: Into<&'a Triangle<usize>>,
+        &'a Triangle2d<T>: Into<&'a Triangle2d<usize>>,
     {
-        let triangle: &Triangle<usize> = triangle.into();
-        self.draw_line(triangle.points[0], triangle.points[1], color);
-        self.draw_line(triangle.points[1], triangle.points[2], color);
-        self.draw_line(triangle.points[2], triangle.points[0], color);
+        let t: &Triangle2d<usize> = triangle.into();
+        self.draw_line(t.0, t.1, color);
+        self.draw_line(t.1, t.2, color);
+        self.draw_line(t.2, t.0, color);
     }
 
-    pub fn fill_triangle<'a, T>(&mut self, triangle: &'a Triangle<T>, color: u32)
+    /// http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
+    pub fn fill_triangle<'a, T>(&mut self, triangle: &'a Triangle2d<T>, color: u32)
     where
-        &'a Triangle<T>: Into<&'a Triangle<usize>>,
+        &'a Triangle2d<T>: Into<&'a Triangle2d<usize>>,
     {
-        let triangle: &Triangle<usize> = triangle.into();
-        // http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
-    }
-
-    pub fn fill_rect<T>(&mut self, point: Vec2d<T>, size: Vec2d<T>, color: u32)
-    where
-        Vec2d<T>: Into<Vec2d<usize>>,
-    {
-        let point: Vec2d<usize> = point.into();
-        let size: Vec2d<usize> = size.into();
-        let width = self.width;
-        let slice = self.slice_mut();
-        for y in point.y..point.y + size.y {
-            let pixel_start = width * y + point.x;
-            for pixel in slice[pixel_start..pixel_start + size.x].iter_mut() {
-                *pixel = color;
-            }
+        // Sort triangle vertices by y position
+        // vertices with same y position sorted by x position
+        let mut t: Triangle2d<usize> = triangle.into().clone();
+        t.sort_vectors_by(|v1, v2| v1.x.cmp(&v2.x))
+            .sort_vectors_by(|v1, v2| v1.y.cmp(&v2.y));
+        // Check for top-flat triangle
+        if t.0.y == t.1.y {
+            self.fill_top_flat_triangle(&t, color);
+        }
+        // Check for bottom-flat triangle
+        else if t.1.y == t.2.y {
+            self.fill_bottom_flat_triangle(&t, color);
+        }
+        // General case, split triangle into top-flat and bottom-flat pair
+        else {
+            let t4 = Vec2d {
+                x: (t.0.x as isize
+                    + (((t.1.y - t.0.y) as f64 / (t.2.y - t.0.y) as f64) * (t.2.x - t.0.x) as f64)
+                        as isize) as usize,
+                y: t.1.y,
+            };
+            // The new point t4 could be to the left or to the right of t.1
+            let (t_bottom, t_top) = if t4.x < t.1.x {
+                (Triangle2d(t.0, t4, t.1), Triangle2d(t4, t.1, t.2))
+            } else {
+                (Triangle2d(t.0, t.1, t4), Triangle2d(t.1, t4, t.2))
+            };
+            self.fill_bottom_flat_triangle(&t_bottom, color);
+            self.fill_top_flat_triangle(&t_top, color);
         }
     }
+
+    /// Bresenham Algorithm
+    /// http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
+    ///
+    /// Vertices must already be sorted by y and x
+    ///
+    /// t.0.y >= t.1.y
+    ///
+    /// t.1.y == t.2.y
+    ///
+    /// t.1.x <= t.2.x
+    fn fill_bottom_flat_triangle(&mut self, t: &Triangle2d<usize>, color: u32) {}
+
+    /// Bresenham Algorithm
+    /// http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
+    ///
+    /// Vertices must already be sorted by y and x:
+    ///
+    /// t.0.y == t.1.y
+    ///
+    /// t.0.x <= t.1.x
+    ///
+    /// t.1.y >= t.2.y
+    fn fill_top_flat_triangle(&mut self, t: &Triangle2d<usize>, color: u32) {}
 }

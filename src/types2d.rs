@@ -48,12 +48,35 @@ impl<T> Vec2d<T> {
 }
 
 #[derive(Clone)]
-pub struct Triangle<T> {
-    pub points: [Vec2d<T>; 3],
-}
+pub struct Triangle2d<T>(pub Vec2d<T>, pub Vec2d<T>, pub Vec2d<T>);
 
-impl<T> Triangle<T> {
-    pub fn new(points: [Vec2d<T>; 3]) -> Self {
-        Triangle { points }
+impl<T> Triangle2d<T> {
+    pub fn sort_vectors_by<F>(&mut self, mut compare: F) -> &mut Self
+    where
+        F: FnMut(&Vec2d<T>, &Vec2d<T>) -> std::cmp::Ordering,
+    {
+        use std::cmp::Ordering;
+        use std::mem::swap;
+        // Comparisons
+        let c01 = compare(&self.0, &self.1);
+        let c12 = compare(&self.1, &self.2);
+        let c02 = compare(&self.0, &self.2);
+        // Handle every case
+        if c01 == Ordering::Greater {
+            if c12 == Ordering::Greater {
+                swap(&mut self.0, &mut self.2);
+            } else {
+                swap(&mut self.0, &mut self.1);
+                if c02 == Ordering::Greater {
+                    swap(&mut self.1, &mut self.2);
+                }
+            }
+        } else if c12 == Ordering::Greater {
+            swap(&mut self.1, &mut self.2);
+            if c02 == Ordering::Greater {
+                swap(&mut self.0, &mut self.1);
+            }
+        }
+        self
     }
 }
