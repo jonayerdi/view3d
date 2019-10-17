@@ -1,14 +1,9 @@
-use super::buffer::Framebuffer;
-use super::types2d::{Triangle2d, Vec2d};
+use super::framebuffer::Framebuffer;
+use super::types2d::{Triangle2d, Vec2D};
 
 #[allow(dead_code)]
 impl Framebuffer {
-    pub fn fill_rect<T>(&mut self, point: Vec2d<T>, size: Vec2d<T>, color: u32)
-    where
-        Vec2d<T>: Into<Vec2d<usize>>,
-    {
-        let point: Vec2d<usize> = point.into();
-        let size: Vec2d<usize> = size.into();
+    pub fn fill_rect(&mut self, point: Vec2D<usize>, size: Vec2D<usize>, color: u32) {
         let width = self.width;
         let slice = self.slice_mut();
         for y in point.y..point.y + size.y {
@@ -21,12 +16,9 @@ impl Framebuffer {
 
     /// Bresenham's line algorithm
     /// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
-    pub fn draw_line<T>(&mut self, p1: Vec2d<T>, p2: Vec2d<T>, color: u32)
-    where
-        Vec2d<T>: Into<Vec2d<usize>>,
-    {
-        let mut p1: Vec2d<usize> = p1.into();
-        let mut p2: Vec2d<usize> = p2.into();
+    pub fn draw_line(&mut self, p1: Vec2D<usize>, p2: Vec2D<usize>, color: u32) {
+        let mut p1 = p1;
+        let mut p2 = p2;
         let mut delta_x = p2.x as isize - p1.x as isize;
         let mut delta_y = p2.y as isize - p1.y as isize;
         let width = self.width;
@@ -82,24 +74,18 @@ impl Framebuffer {
         }
     }
 
-    pub fn draw_triangle<'a, T>(&mut self, triangle: &'a Triangle2d<T>, color: u32)
-    where
-        &'a Triangle2d<T>: Into<&'a Triangle2d<usize>>,
-    {
-        let t: &Triangle2d<usize> = triangle.into();
+    pub fn draw_triangle<'a>(&mut self, triangle: &'a Triangle2d<usize>, color: u32) {
+        let t = triangle;
         self.draw_line(t.0, t.1, color);
         self.draw_line(t.1, t.2, color);
         self.draw_line(t.2, t.0, color);
     }
 
     /// http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
-    pub fn fill_triangle<'a, T>(&mut self, triangle: &'a Triangle2d<T>, color: u32)
-    where
-        &'a Triangle2d<T>: Into<&'a Triangle2d<usize>>,
-    {
+    pub fn fill_triangle<'a>(&mut self, triangle: &'a Triangle2d<usize>, color: u32) {
         // Sort triangle vertices by y position
         // vertices with same y position sorted by x position
-        let mut t: Triangle2d<usize> = triangle.into().clone();
+        let mut t = triangle.clone();
         t.sort_vectors_by(|v1, v2| v1.x.cmp(&v2.x))
             .sort_vectors_by(|v1, v2| v1.y.cmp(&v2.y));
         // Check for top-flat triangle
@@ -112,7 +98,7 @@ impl Framebuffer {
         }
         // General case, split triangle into top-flat and bottom-flat pair
         else {
-            let t4 = Vec2d {
+            let t4 = Vec2D {
                 x: (t.0.x as isize
                     + (((t.1.y - t.0.y) as f64 / (t.2.y - t.0.y) as f64) * (t.2.x - t.0.x) as f64)
                         as isize) as usize,

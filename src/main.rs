@@ -1,11 +1,11 @@
-mod buffer;
-use buffer::Framebuffer;
+mod framebuffer;
+use framebuffer::Framebuffer;
 mod draw2d;
 use minifb::{Window, WindowOptions};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 mod types2d;
-use types2d::{Triangle2d, Vec2d};
+use types2d::{Triangle2d, Vec2D};
 
 const STEP_PERIOD: Duration = Duration::from_millis(1000 / 60);
 
@@ -27,9 +27,9 @@ fn main() {
     let mut fb = Framebuffer::new(800, 600);
     fb.draw_triangle(
         &Triangle2d(
-            Vec2d::new(50, 50),
-            Vec2d::new(100, 400),
-            Vec2d::new(500, 500),
+            Vec2D::new(50, 50),
+            Vec2D::new(100, 400),
+            Vec2D::new(500, 500),
         ),
         0xFFFF_FFFF,
     );

@@ -1,59 +1,55 @@
 use std::ops::{Add, Sub};
 
+pub enum Dimension2D {
+    X,
+    Y,
+}
+
 #[derive(Clone, Copy)]
-pub struct Vec2d<T> {
+pub struct Vec2D<T> {
     pub x: T,
     pub y: T,
 }
 
-impl<T> PartialEq for Vec2d<T>
-where
-    T: PartialEq,
-{
+impl<T: PartialEq> PartialEq for Vec2D<T> {
     fn eq(&self, rhs: &Self) -> bool {
         self.x == rhs.x && self.y == rhs.y
     }
 }
 
-impl<T> Add for Vec2d<T>
-where
-    T: Add<Output = T>,
-{
+impl<T: Add<Output = T>> Add for Vec2D<T> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
-        Vec2d {
+        Vec2D {
             x: self.x + rhs.x,
             y: self.y + rhs.y,
         }
     }
 }
 
-impl<T> Sub for Vec2d<T>
-where
-    T: Sub<Output = T>,
-{
+impl<T: Sub<Output = T>> Sub for Vec2D<T> {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self::Output {
-        Vec2d {
+        Vec2D {
             x: self.x - rhs.x,
             y: self.y - rhs.y,
         }
     }
 }
 
-impl<T> Vec2d<T> {
+impl<T> Vec2D<T> {
     pub fn new(x: T, y: T) -> Self {
-        Vec2d { x, y }
+        Vec2D { x, y }
     }
 }
 
 #[derive(Clone)]
-pub struct Triangle2d<T>(pub Vec2d<T>, pub Vec2d<T>, pub Vec2d<T>);
+pub struct Triangle2d<T>(pub Vec2D<T>, pub Vec2D<T>, pub Vec2D<T>);
 
 impl<T> Triangle2d<T> {
     pub fn sort_vectors_by<F>(&mut self, mut compare: F) -> &mut Self
     where
-        F: FnMut(&Vec2d<T>, &Vec2d<T>) -> std::cmp::Ordering,
+        F: FnMut(&Vec2D<T>, &Vec2D<T>) -> std::cmp::Ordering,
     {
         use std::cmp::Ordering;
         use std::mem::swap;
