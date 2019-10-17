@@ -1,11 +1,11 @@
+mod util;
 mod framebuffer;
 use framebuffer::Framebuffer;
 mod draw2d;
 use minifb::{Window, WindowOptions};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
-mod types2d;
-use types2d::{Triangle2d, Vec2D};
+use draw2d::{Triangle2d, Vec2D};
 
 const STEP_PERIOD: Duration = Duration::from_millis(1000 / 60);
 

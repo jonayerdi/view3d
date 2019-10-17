@@ -1,3 +1,8 @@
+mod draw2d;
+pub use draw2d::*;
+
+mod line;
+
 use std::ops::{Add, Sub};
 
 pub enum Dimension2D {
