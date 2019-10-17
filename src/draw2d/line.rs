@@ -1,7 +1,7 @@
 /// Bresenham Algorithm
 /// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
 use super::{Dimension2D, Vec2D};
-use crate::util::approx::{ApproxFrom, ApproxInto};
+use crate::util::{ApproxFrom, ApproxInto};
 use std::cmp::PartialOrd;
 use std::convert::{TryFrom, TryInto};
 use std::ops::Add;
