@@ -1,5 +1,5 @@
 use super::line::LineIter;
-use super::{Triangle2d, Vec2D};
+use super::{Triangle2D, Vec2D};
 use crate::framebuffer::Framebuffer;
 
 #[allow(dead_code)]
@@ -23,7 +23,7 @@ impl Framebuffer {
         }
     }
 
-    pub fn draw_triangle<'a>(&mut self, triangle: &'a Triangle2d<usize>, color: u32) {
+    pub fn draw_triangle<'a>(&mut self, triangle: &'a Triangle2D<usize>, color: u32) {
         let t = triangle;
         self.draw_line(t.0, t.1, color);
         self.draw_line(t.1, t.2, color);
@@ -31,11 +31,12 @@ impl Framebuffer {
     }
 
     /// http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
-    pub fn fill_triangle<'a>(&mut self, triangle: &'a Triangle2d<usize>, color: u32) {
+    pub fn fill_triangle<'a>(&mut self, triangle: &'a Triangle2D<usize>, color: u32) {
         // Sort triangle vertices by y position
         // vertices with same y position sorted by x position
-        let mut t = triangle.clone();
-        t.sort_vectors_by(|v1, v2| v1.x.cmp(&v2.x))
+        let t = triangle
+            .clone()
+            .sort_vectors_by(|v1, v2| v1.x.cmp(&v2.x))
             .sort_vectors_by(|v1, v2| v1.y.cmp(&v2.y));
         // Check for top-flat triangle
         if t.0.y == t.1.y {
@@ -47,6 +48,7 @@ impl Framebuffer {
         }
         // General case, split triangle into top-flat and bottom-flat pair
         else {
+            // Calculate new cutoff point t4, which is vertically aligned with t.1
             let t4 = Vec2D {
                 x: (t.0.x as isize
                     + (((t.1.y - t.0.y) as f64 / (t.2.y - t.0.y) as f64) * (t.2.x - t.0.x) as f64)
@@ -55,9 +57,9 @@ impl Framebuffer {
             };
             // The new point t4 could be to the left or to the right of t.1
             let (t_bottom, t_top) = if t4.x < t.1.x {
-                (Triangle2d(t.0, t4, t.1), Triangle2d(t4, t.1, t.2))
+                (Triangle2D(t.0, t4, t.1), Triangle2D(t4, t.1, t.2))
             } else {
-                (Triangle2d(t.0, t.1, t4), Triangle2d(t.1, t4, t.2))
+                (Triangle2D(t.0, t.1, t4), Triangle2D(t.1, t4, t.2))
             };
             self.fill_bottom_flat_triangle(&t_bottom, color);
             self.fill_top_flat_triangle(&t_top, color);
@@ -71,7 +73,7 @@ impl Framebuffer {
     /// t.1.y == t.2.y
     ///
     /// t.1.x <= t.2.x
-    fn fill_bottom_flat_triangle(&mut self, t: &Triangle2d<usize>, color: u32) {
+    fn fill_bottom_flat_triangle(&mut self, t: &Triangle2D<usize>, color: u32) {
         // Fill from top to bottom
         self.fill_flat_triangle(LineIter::new(t.0, t.1), LineIter::new(t.0, t.2), color);
     }
@@ -84,7 +86,7 @@ impl Framebuffer {
     /// t.0.x <= t.1.x
     ///
     /// t.1.y >= t.2.y
-    fn fill_top_flat_triangle(&mut self, t: &Triangle2d<usize>, color: u32) {
+    fn fill_top_flat_triangle(&mut self, t: &Triangle2D<usize>, color: u32) {
         // Fill from top to bottom
         self.fill_flat_triangle(LineIter::new(t.2, t.0), LineIter::new(t.2, t.1), color);
     }

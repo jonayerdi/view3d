@@ -1,7 +1,7 @@
 mod draw2d;
-pub use draw2d::*;
-
 mod line;
+
+pub use draw2d::*;
 
 use std::ops::{Add, Sub};
 
@@ -49,10 +49,13 @@ impl<T> Vec2D<T> {
 }
 
 #[derive(Clone)]
-pub struct Triangle2d<T>(pub Vec2D<T>, pub Vec2D<T>, pub Vec2D<T>);
+pub struct Triangle2D<T>(pub Vec2D<T>, pub Vec2D<T>, pub Vec2D<T>);
 
-impl<T> Triangle2d<T> {
-    pub fn sort_vectors_by<F>(&mut self, mut compare: F) -> &mut Self
+impl<T> Triangle2D<T> {
+    pub fn new(points: (Vec2D<T>, Vec2D<T>, Vec2D<T>)) -> Triangle2D<T> {
+        Triangle2D(points.0, points.1, points.2)
+    }
+    pub fn sort_vectors_by<F>(mut self, mut compare: F) -> Self
     where
         F: FnMut(&Vec2D<T>, &Vec2D<T>) -> std::cmp::Ordering,
     {

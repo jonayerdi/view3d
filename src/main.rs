@@ -2,7 +2,7 @@ mod draw2d;
 mod framebuffer;
 mod util;
 
-use draw2d::{Triangle2d, Vec2D};
+use draw2d::{Triangle2D, Vec2D};
 use framebuffer::Framebuffer;
 use minifb::{Window, WindowOptions};
 use std::thread::sleep;
@@ -27,19 +27,19 @@ fn next_step(window: &mut Window, fb: &mut Framebuffer) {
 fn main() {
     let mut fb = Framebuffer::new(800, 600);
     fb.fill_triangle(
-        &Triangle2d(
+        &Triangle2D::new((
             Vec2D::new(50, 50),
             Vec2D::new(100, 400),
             Vec2D::new(500, 500),
-        ),
+        )),
         0xFF00_7733,
     );
     fb.draw_triangle(
-        &Triangle2d(
+        &Triangle2D::new((
             Vec2D::new(50, 50),
             Vec2D::new(100, 400),
             Vec2D::new(500, 500),
-        ),
+        )),
         0xFFFF_FFFF,
     );
     let mut window = Window::new("view3d", fb.width, fb.height, WindowOptions::default())

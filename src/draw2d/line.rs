@@ -75,9 +75,12 @@ where
             // Increment/decrement y value accordingly
             if self.error > 0.5 {
                 self.value = T::try_from(
-                    self.value.try_into().unwrap_or_else(|_| panic!()) + self.value_increment,
+                    self.value
+                        .try_into()
+                        .unwrap_or_else(|_| panic!("Error converting line position into isize"))
+                        + self.value_increment,
                 )
-                .unwrap_or_else(|_| panic!());
+                .unwrap_or_else(|_| panic!("Error converting line position from isize"));
                 self.error -= 1.0;
             }
         }
