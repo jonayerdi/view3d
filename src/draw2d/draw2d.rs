@@ -1,6 +1,6 @@
-use crate::framebuffer::Framebuffer;
-use super::{Triangle2d, Vec2D};
 use super::line::LineIter;
+use super::{Triangle2d, Vec2D};
+use crate::framebuffer::Framebuffer;
 
 #[allow(dead_code)]
 impl Framebuffer {
@@ -71,7 +71,10 @@ impl Framebuffer {
     /// t.1.y == t.2.y
     ///
     /// t.1.x <= t.2.x
-    fn fill_bottom_flat_triangle(&mut self, t: &Triangle2d<usize>, color: u32) {}
+    fn fill_bottom_flat_triangle(&mut self, t: &Triangle2d<usize>, color: u32) {
+        // Fill from top to bottom
+        self.fill_flat_triangle(LineIter::new(t.0, t.1), LineIter::new(t.0, t.2), color);
+    }
 
     ///
     /// Vertices must already be sorted by y and x:
@@ -81,5 +84,35 @@ impl Framebuffer {
     /// t.0.x <= t.1.x
     ///
     /// t.1.y >= t.2.y
-    fn fill_top_flat_triangle(&mut self, t: &Triangle2d<usize>, color: u32) {}
+    fn fill_top_flat_triangle(&mut self, t: &Triangle2d<usize>, color: u32) {
+        // Fill from top to bottom
+        self.fill_flat_triangle(LineIter::new(t.2, t.0), LineIter::new(t.2, t.1), color);
+    }
+
+    fn fill_flat_triangle(
+        &mut self,
+        mut left_line: LineIter<usize>,
+        mut right_line: LineIter<usize>,
+        color: u32,
+    ) {
+        let width = self.width;
+        let slice = self.slice_mut();
+        // First line points for both sides
+        let mut left = left_line.next();
+        let mut right = right_line.next();
+        while let (Some(left_point), Some(right_point)) = (left, right) {
+            // Draw line from left_point to right_point
+            let y = left_point.y;
+            let pixel_start = width * y + left_point.x;
+            let distance = right_point.x - left_point.x;
+            for pixel in slice[pixel_start..pixel_start + distance].iter_mut() {
+                *pixel = color;
+            }
+            // Iterate until next left and right points (next y position)
+            left = left_line.find(|&p| p.y != y);
+            if left.is_some() {
+                right = right_line.find(|&p| p.y != y);
+            }
+        }
+    }
 }

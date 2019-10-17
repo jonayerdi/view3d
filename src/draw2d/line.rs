@@ -1,11 +1,10 @@
 /// Bresenham Algorithm
 /// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
-
-use crate::util::approx::{ApproxInto,ApproxFrom};
 use super::{Dimension2D, Vec2D};
+use crate::util::approx::{ApproxFrom, ApproxInto};
 use std::cmp::PartialOrd;
+use std::convert::{TryFrom, TryInto};
 use std::ops::Add;
-use std::convert::{TryFrom,TryInto};
 
 pub struct LineIter<T> {
     index_max: T,
@@ -55,7 +54,7 @@ where
 
 impl<T> Iterator for LineIter<T>
 where
-    T: Copy + PartialOrd + Add<Output=T> + TryInto<isize> + TryFrom<isize> + ApproxFrom<usize>,
+    T: Copy + PartialOrd + Add<Output = T> + TryInto<isize> + TryFrom<isize> + ApproxFrom<usize>,
 {
     type Item = Vec2D<T>;
     fn next(&mut self) -> Option<Self::Item> {
@@ -75,7 +74,10 @@ where
             self.error += self.delta_error;
             // Increment/decrement y value accordingly
             if self.error > 0.5 {
-                self.value = T::try_from(self.value.try_into().unwrap_or_else(|_| panic!()) + self.value_increment).unwrap_or_else(|_| panic!());
+                self.value = T::try_from(
+                    self.value.try_into().unwrap_or_else(|_| panic!()) + self.value_increment,
+                )
+                .unwrap_or_else(|_| panic!());
                 self.error -= 1.0;
             }
         }
